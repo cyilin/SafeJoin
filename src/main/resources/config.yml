@@ -1,0 +1,5 @@
+#UTF-8 without BOM
+enable: true
+mode: 1
+worlds: [mine,test]
+command: 'spawn'

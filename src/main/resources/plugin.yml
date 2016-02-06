@@ -1,0 +1,12 @@
+name: ${artifactId}
+version: ${version}-${timestamp}
+authores: [${plugin.authores}]
+website: ${plugin.website}
+main: ${groupId}.${artifactId}.Main
+depend: [Essentials]
+commands:
+  safejoin:
+    permission: safejoin.admin
+permissions:
+  safejoin.admin:
+    default: op
