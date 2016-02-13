@@ -23,23 +23,23 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import net.ess3.api.IEssentials;
 import org.bukkit.World;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-public class Main
-        extends JavaPlugin
-        implements Listener, CommandExecutor {
+public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
     private HashMap<String, Long> timestamp = new HashMap();
     private List<String> worlds;
     private String command;
     private IEssentials ess;
-    private String mode;
+    private int mode;
     private boolean enable;
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         String act = (args.length == 0 ? "" : args[0].toLowerCase());
-        sender.sendMessage(ChatColor.GOLD + "[SafeJoin] " + ChatColor.BLUE + "==SafeJoin " + getServer().getPluginManager().getPlugin("SafeJoin").getDescription().getVersion() + "==");
+        sender.sendMessage(ChatColor.GOLD + "[SafeJoin] " + ChatColor.BLUE + "==SafeJoin "
+                + getServer().getPluginManager().getPlugin("SafeJoin").getDescription().getVersion() + "==");
         sender.sendMessage(ChatColor.GOLD + "[SafeJoin] " + ChatColor.WHITE + "/safejoin reload");
         sender.sendMessage(ChatColor.GOLD + "[SafeJoin] " + ChatColor.WHITE + "by cylin https://github.com/cyilin");
         if (act.equals("reload") && sender.hasPermission("safejoin.admin")) {
@@ -52,6 +52,7 @@ public class Main
 
     @Override
     public void onDisable() {
+        PlayerJoinEvent.getHandlerList().unregister((JavaPlugin) this);
         this.worlds = null;
         this.timestamp = new HashMap();
         this.ess = null;
@@ -75,6 +76,13 @@ public class Main
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        try {
+            getConfig().load(new File(getDataFolder(), "config.yml"));
+        } catch (IOException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidConfigurationException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
         getCommand("safejoin").setExecutor(this);
         this.enable = getConfig().getBoolean("enable");
         if (this.enable) {
@@ -82,7 +90,7 @@ public class Main
         } else {
             return;
         }
-        this.mode = getConfig().getString("mode");
+        this.mode = getConfig().getInt("mode");
         this.worlds = getConfig().getStringList("worlds");
         this.command = getConfig().getString("command");
         this.load();
@@ -98,9 +106,16 @@ public class Main
         String world_name = player.getLocation().getWorld().getName();
         if (worlds.contains(world_name)) {
             if (logout < this.timestamp.get(world_name)) {
-                player.setNoDamageTicks(100);
-                getLogger().log(Level.INFO, "{0} {1}", new Object[]{player.getName(), this.command});
-                getServer().dispatchCommand(player, this.command);
+                if (this.mode == 1) {
+                    player.setNoDamageTicks(100);
+                    getLogger().log(Level.INFO, "{0} {1} {2}", new Object[]{world_name,player.getName(), this.command});
+                    getServer().dispatchCommand(player, this.command);
+                } else if (this.mode == 2) {
+                    player.setNoDamageTicks(100);
+                    String c = this.command.replace("{player}", player.getName());
+                    getLogger().log(Level.INFO, "{0} {1} {2}", new Object[]{world_name,player.getName(), c});
+                    getServer().dispatchCommand(getServer().getConsoleSender(), c);
+                }
             }
         }
     }

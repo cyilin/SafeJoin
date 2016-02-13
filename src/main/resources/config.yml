@@ -3,3 +3,5 @@ enable: true
 mode: 1
 worlds: [mine,test]
 command: 'spawn'
+#command: 'mw move {player} world'
+#command: 'mv tp {player} world'
