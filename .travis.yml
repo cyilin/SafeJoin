@@ -1,0 +1,21 @@
+language: java
+jdk:
+- oraclejdk8
+before_deploy:
+  - git config --global user.email "builds@travis-ci.com"
+  - git config --global user.name "Travis CI"
+  - git tag SafeJoin-1.2.0.${TRAVIS_BUILD_NUMBER}
+  - git push -q ${GITHUB_REPO} --tags
+deploy:
+  provider: releases
+  api_key:
+    secure: "FVbK+RSkJHTXb2ag/J0pkUEzZ8XksDsL3qzVsVKzv80otG2El2Z5qvM9x2DiL3WyZK4zgErlkj7FnfMEiWE8x/nMYMOIKGwJjJPZCyFzaPDoFkh4X5lnSsWRzrDDZFyHUgOL9rQB8KMIcy75F4oY5HFupUVm43QaffFDlSkNV/3voSMXwCyjq/TpS50RYGpP84c7aWn+pc7ayONjwS43o1ipe0FVq0i5p38x2aCrkRLoWdY5QoonXMixYrtZGcJ8imX4W5DCOR02CDlon4tU11+Y4Na2hukCqkNfnKZaXiELa5FJyWUqcgyeeQVWb17sOqVDESfVlXR4SC5tQnTfhH5p84xlsO49+cNC4lsEhgPHodpG+pFwKxwWSWoCr2lTtAaUAnu40a4QYWLRhP68XhGUleSRB9SA2kgouXQADxKjdgGxCcDxsH2EZrtpiCfY06fngdClYpU+RW2XZ/UifjPZ6sP8fM2P3y1OeZAIXyPUIkTOYHSJwBOmYZLeYpsipeJVSskQ9cB8Hq0HM7Sood5lasfQVzLYe4C0A2W0ODwnzQhjATskaBv1Qc13LMY9p5vI5irFDxw7JZiKRZX8LxqIObVtkRLLIwaCtmB54Es7rlGf3UzE3BPjaFztT7c5z6rxu2MlOH9ozvS6nvZmAeOlPnuo2u6OQECauFyL9Bw="
+  file:
+  - build/libs/SafeJoin-1.2.0.${TRAVIS_BUILD_NUMBER}.jar
+  on:
+    repo: cyilin/SafeJoin
+    tags: false
+  skip_cleanup: true
+branches:
+  only:
+    - master
