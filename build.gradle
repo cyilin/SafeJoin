@@ -1,0 +1,43 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+repositories {
+    jcenter()
+
+    maven {
+        name 'spigot-repo'
+        url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+
+    maven {
+        name 'ess-repo'
+        url 'http://repo.ess3.net/content/groups/essentials'
+    }
+}
+
+version = "1.2.0.%s"
+
+if (System.getenv("TRAVIS_BUILD_NUMBER") != null) {
+    project.version = String.format(project.version, System.getenv("TRAVIS_BUILD_NUMBER"))
+} else {
+    project.version = String.format(project.version, "0")
+}
+
+dependencies {
+    compile('org.spigotmc:spigot-api:1.10.2-R0.1-SNAPSHOT') {
+        transitive = false
+    }
+    compile('net.ess3:Essentials:2.13-SNAPSHOT') {
+        transitive = false
+    }
+}
+
+processResources {
+    expand version:project.version
+}
+
+
+
+
