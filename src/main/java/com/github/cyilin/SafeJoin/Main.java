@@ -1,8 +1,10 @@
 package com.github.cyilin.SafeJoin;
 
+import com.github.cyilin.SafeJoin.utils.RandomLocation;
 import net.ess3.api.IEssentials;
-import org.bukkit.ChatColor;
-import org.bukkit.World;
+import org.bukkit.*;
+import org.bukkit.block.Biome;
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -33,6 +36,9 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     private int mode;
     private boolean enable;
     private Set<String> tp;
+    private boolean FallProtection;
+    private boolean check_elytra;
+    private List<String> FallProtection_worlds;
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -103,33 +109,105 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         this.command = getConfig().getString("command");
         timestamp = new HashMap();
         tp = new HashSet<>();
+        this.FallProtection = getConfig().getBoolean("FallProtection.enable", true);
+        this.check_elytra = getConfig().getBoolean("FallProtection.check_elytra", false);
+        this.FallProtection_worlds = getConfig().getStringList("FallProtection.worlds");
         this.load();
+        this.save();
+    }
+
+    private void save() {
+        getConfig().set("enable", enable);
+        getConfig().set("mode", mode);
+        getConfig().set("worlds", worlds);
+        getConfig().set("command", command);
+        getConfig().set("FallProtection.enable", FallProtection);
+        getConfig().set("FallProtection.check_elytra", check_elytra);
+        getConfig().set("FallProtection.worlds", FallProtection_worlds);
+        try {
+            getConfig().save(new File(getDataFolder(), "config.yml"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @EventHandler
     public void onPlayerJoinEvent(PlayerJoinEvent event) {
-        if (!this.enable) {
-            return;
-        }
         Player player = event.getPlayer();
-        Long logout = ess.getUser(player).getLastLogout();
         String world_name = player.getLocation().getWorld().getName();
-        if (!tp.isEmpty() && tp.contains(player.getName().toLowerCase())) {
-            player.teleport(getServer().getWorld("world").getSpawnLocation());
-            tp.remove(player.getName().toLowerCase());
+        if (this.enable) {
+            Long logout = ess.getUser(player).getLastLogout();
+
+            if (!tp.isEmpty() && tp.contains(player.getName().toLowerCase())) {
+                player.teleport(getServer().getWorld("world").getSpawnLocation());
+                tp.remove(player.getName().toLowerCase());
+            }
+            if (worlds.contains(world_name)) {
+                if (logout < this.timestamp.get(world_name)) {
+                    getLogger().info(String.format("player:%s world:%s loc:%s %s %s", player.getName(), world_name, player.getLocation().getX(), player.getLocation().getY(), player.getLocation().getZ()));
+                    if (this.mode == 1) {
+                        player.setNoDamageTicks(100);
+                        getLogger().log(Level.INFO, "{0} {1} {2}", new Object[]{world_name, player.getName(), this.command});
+                        getServer().dispatchCommand(player, this.command);
+                    } else if (this.mode == 2) {
+                        player.setNoDamageTicks(100);
+                        String c = this.command.replace("{player}", player.getName());
+                        getLogger().log(Level.INFO, "{0} {1} {2}", new Object[]{world_name, player.getName(), c});
+                        getServer().dispatchCommand(getServer().getConsoleSender(), c);
+                    }
+                    return;
+                }
+            }
         }
-        if (worlds.contains(world_name)) {
-            if (logout < this.timestamp.get(world_name)) {
-                getLogger().info(String.format("player:%s world:%s loc:%s %s %s", player.getName(), world_name, player.getLocation().getX(), player.getLocation().getY(), player.getLocation().getZ()));
-                if (this.mode == 1) {
-                    player.setNoDamageTicks(100);
-                    getLogger().log(Level.INFO, "{0} {1} {2}", new Object[]{world_name, player.getName(), this.command});
-                    getServer().dispatchCommand(player, this.command);
-                } else if (this.mode == 2) {
-                    player.setNoDamageTicks(100);
-                    String c = this.command.replace("{player}", player.getName());
-                    getLogger().log(Level.INFO, "{0} {1} {2}", new Object[]{world_name, player.getName(), c});
-                    getServer().dispatchCommand(getServer().getConsoleSender(), c);
+        if (FallProtection && player.getFallDistance() > 0.9D) {
+            if (player.isFlying() || player.getGameMode().equals(GameMode.CREATIVE) ||
+                    player.getGameMode().equals(GameMode.SPECTATOR)) {
+                return;
+            }
+            if (!FallProtection_worlds.contains(world_name)) {
+                return;
+            }
+            if (check_elytra) {
+                if (player.getInventory().getChestplate() == null ||
+                        player.getInventory().getChestplate().getType() != Material.ELYTRA) {
+                    return;
+                }
+            }
+            if (player.getLocation().getBlock().getLightFromSky() > 10 ||
+                    player.getLocation().getBlock().getBiome() == Biome.SKY ||
+                    player.getLocation().getBlock().getBiome() == Biome.HELL) {
+                Block block = player.getWorld().getHighestBlockAt(player.getLocation()).getLocation().
+                        add(0.0D, -1.0D, 0.0D).getBlock();
+                Location loc = null;
+                if (block.getY() < player.getLocation().getY() && block.getY() > 5 && !block.isLiquid()) {
+                    loc = block.getLocation().add(0.5D, 1.1D, 0.5D);
+                } else {
+                    loc = RandomLocation.RandomLocation(player);
+                    if (loc == null) {
+                        player.setFallDistance(0);
+                        player.setNoDamageTicks(100);
+                        getLogger().info("unable to find safe location");
+                        if (this.mode == 1) {
+                            getLogger().log(Level.INFO, "{0} {1} {2}", new Object[]{player.getWorld().getName(), player.getName(), this.command});
+                            getServer().dispatchCommand(player, this.command);
+                        } else if (this.mode == 2) {
+                            String c = this.command.replace("{player}", player.getName());
+                            getLogger().log(Level.INFO, "{0} {1} {2}", new Object[]{player.getWorld().getName(), player.getName(), c});
+                            getServer().dispatchCommand(getServer().getConsoleSender(), c);
+                        }
+                        return;
+                    }
+                }
+                if (loc != null) {
+                    player.setFallDistance(0);
+                    getLogger().info(String.format("teleport %s to %s %.2f %.2f %.2f", player.getDisplayName(), loc.getWorld().getName()
+                            , loc.getX(), loc.getY(), loc.getZ()));
+                    try {
+                        ess.getUser(player).getTeleport().now(loc, false, PlayerTeleportEvent.TeleportCause.PLUGIN);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        player.teleport(loc, PlayerTeleportEvent.TeleportCause.PLUGIN);
+                    }
                 }
             }
         }

@@ -1,8 +1,8 @@
-name: ${artifactId}
-version: ${version}-${timestamp}
-authores: [${plugin.authores}]
-website: ${plugin.website}
-main: ${groupId}.${artifactId}.Main
+name: SafeJoin
+version: ${version}
+authores: [cylin]
+website: https://github.com/cyilin/SafeJoin
+main: com.github.cyilin.SafeJoin.Main
 depend: [Essentials]
 commands:
   safejoin:

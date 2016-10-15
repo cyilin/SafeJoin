@@ -5,3 +5,7 @@ worlds: [mine,test]
 command: 'spawn'
 #command: 'mw move {player} world'
 #command: 'mv tp {player} world'
+FallProtection:
+  enable: true
+  worlds: [mine,test]
+  check_elytra: false
