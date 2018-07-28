@@ -1,7 +1,7 @@
 apply plugin: 'java'
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 repositories {
     jcenter()
@@ -26,7 +26,7 @@ if (System.getenv("TRAVIS_BUILD_NUMBER") != null) {
 }
 
 dependencies {
-    compile('org.spigotmc:spigot-api:1.10.2-R0.1-SNAPSHOT') {
+    compile('org.spigotmc:spigot-api:1.13-R0.1-SNAPSHOT') {
         transitive = false
     }
     compile('net.ess3:Essentials:2.13-SNAPSHOT') {

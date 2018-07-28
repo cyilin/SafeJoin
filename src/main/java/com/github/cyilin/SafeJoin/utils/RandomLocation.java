@@ -13,7 +13,7 @@ import java.util.Random;
 public class RandomLocation {
     public static Location RandomLocation(Player player) {
         World world = player.getWorld();
-        if (player.getLocation().getBlock().getBiome() == Biome.HELL) {
+        if (player.getLocation().getBlock().getBiome() == Biome.NETHER) {
             return null;
         }
         for (int i = 0; i < 10; i++) {

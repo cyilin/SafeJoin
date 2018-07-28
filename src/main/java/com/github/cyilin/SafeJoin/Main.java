@@ -174,8 +174,8 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
                 }
             }
             if (player.getLocation().getBlock().getLightFromSky() > 10 ||
-                    player.getLocation().getBlock().getBiome() == Biome.SKY ||
-                    player.getLocation().getBlock().getBiome() == Biome.HELL) {
+                    player.getLocation().getBlock().getBiome() == Biome.THE_END ||
+                    player.getLocation().getBlock().getBiome() == Biome.NETHER) {
                 Block block = player.getWorld().getHighestBlockAt(player.getLocation()).getLocation().
                         add(0.0D, -1.0D, 0.0D).getBlock();
                 Location loc = null;

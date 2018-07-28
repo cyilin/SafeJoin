@@ -4,6 +4,7 @@ authores: [cylin]
 website: https://github.com/cyilin/SafeJoin
 main: com.github.cyilin.SafeJoin.Main
 depend: [Essentials]
+api-version: 1.13
 commands:
   safejoin:
     permission: safejoin.admin
