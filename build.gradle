@@ -12,8 +12,8 @@ repositories {
     }
 
     maven {
-        name 'ess-repo'
-        url 'http://repo.ess3.net/content/groups/essentials'
+        name 'EssentialsX'
+        url 'https://ci.ender.zone/plugin/repository/everything'
     }
 }
 
@@ -26,10 +26,10 @@ if (System.getenv("TRAVIS_BUILD_NUMBER") != null) {
 }
 
 dependencies {
-    compile('org.spigotmc:spigot-api:1.13-R0.1-SNAPSHOT') {
+    compile('org.spigotmc:spigot-api:1.14.3-R0.1-SNAPSHOT') {
         transitive = false
     }
-    compile('net.ess3:Essentials:2.13-SNAPSHOT') {
+    compile('net.ess3:EssentialsX:2.17.0') {
         transitive = false
     }
 }
